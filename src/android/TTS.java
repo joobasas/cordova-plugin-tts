@@ -28,6 +28,10 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.AudioFocusRequest;
+
 /*
     Cordova Text-to-Speech Plugin
     https://github.com/vilic/cordova-plugin-tts
@@ -52,7 +56,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     @Override
     public void initialize(CordovaInterface cordova, final CordovaWebView webView) {
         context = cordova.getActivity().getApplicationContext();
-        tts = new TextToSpeech(cordova.getActivity().getApplicationContext(), this);
+        tts = new TextToSpeech(cordova.getActivity().getApplicationContext(), this, "com.google.android.tts");
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String s) {
@@ -78,8 +82,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     }
 
     @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
-            throws JSONException {
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("speak")) {
             speak(args, callbackContext);
         } else if (action.equals("stop")) {
@@ -109,33 +112,31 @@ public class TTS extends CordovaPlugin implements OnInitListener {
         }
     }
 
-    private void stop(JSONArray args, CallbackContext callbackContext)
-      throws JSONException, NullPointerException {
+    private void stop(JSONArray args, CallbackContext callbackContext) throws JSONException, NullPointerException {
         tts.stop();
     }
 
     private void callInstallTtsActivity(JSONArray args, CallbackContext callbackContext)
-      throws JSONException, NullPointerException {
+            throws JSONException, NullPointerException {
 
         PackageManager pm = context.getPackageManager();
         Intent installIntent = new Intent();
         installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-        ResolveInfo resolveInfo = pm.resolveActivity( installIntent, PackageManager.MATCH_DEFAULT_ONLY );
+        ResolveInfo resolveInfo = pm.resolveActivity(installIntent, PackageManager.MATCH_DEFAULT_ONLY);
 
-        if( resolveInfo == null ) {
-           // Not able to find the activity which should be started for this intent
+        if (resolveInfo == null) {
+            // Not able to find the activity which should be started for this intent
         } else {
-          installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          context.startActivity(installIntent);
+            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(installIntent);
         }
     }
 
-
     private void checkLanguage(JSONArray args, CallbackContext callbackContext)
-      throws JSONException, NullPointerException {
+            throws JSONException, NullPointerException {
         Set<Locale> supportedLanguages = tts.getAvailableLanguages();
         String languages = "";
-        if(supportedLanguages!= null) {
+        if (supportedLanguages != null) {
             for (Locale lang : supportedLanguages) {
                 languages = languages + "," + lang;
             }
@@ -148,8 +149,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
         callbackContext.sendPluginResult(result);
     }
 
-    private void speak(JSONArray args, CallbackContext callbackContext)
-            throws JSONException, NullPointerException {
+    private void speak(JSONArray args, CallbackContext callbackContext) throws JSONException, NullPointerException {
         JSONObject params = args.getJSONObject(0);
 
         if (params == null) {
@@ -158,6 +158,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
         }
 
         String text;
+        String textFall = "failed";
         String locale;
         double rate;
 
@@ -166,6 +167,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
             return;
         } else {
             text = params.getString("text");
+            textFall = params.getString("text");
         }
 
         if (params.isNull("locale")) {
@@ -196,11 +198,78 @@ public class TTS extends CordovaPlugin implements OnInitListener {
         String[] localeArgs = locale.split("-");
         tts.setLanguage(new Locale(localeArgs[0], localeArgs[1]));
 
-        if (Build.VERSION.SDK_INT >= 27) {
-            tts.setSpeechRate((float) rate * 0.7f);
-        } else {
-            tts.setSpeechRate((float) rate);
-        }
+        // if (Build.VERSION.SDK_INT >= 27) {
+        //     tts.setSpeechRate((float) rate * 0.7f);
+        // } else {
+             tts.setSpeechRate((float) rate);
+        // }
+
+        // AudioManager AudioManager = (AudioManager)
+        // this.cordova.getActivity().getApplicationContext()
+        // .getSystemService(Context.AUDIO_SERVICE);
+
+        // AudioAttributes mAudioAttributes =
+        // new AudioAttributes.Builder()
+        // .setUsage(AudioAttributes.USAGE_MEDIA)
+        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        // .build();
+
+        // AudioAttributes AudioFocusRequest = new
+        // AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
+
+        // AudioAttributes mAudioAttributes = new
+        // AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
+
+        // AudioFocusRequest mAudioFocusRequest = new AudioFocusRequest.Builder(
+        // AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(mAudioAttributes)
+        // .setAcceptsDelayedFocusGain(true)
+        // // .setOnAudioFocusChangeListener(...) // Need to implement listener
+        // .build();
+
+        /**** */
+        // create the listener
+        // audioFocusListener=new AudioManager.OnAudioFocusChangeListener() {
+        // @Override
+        // public void onAudioFocusChange(int focusChange) {
+
+        // // do your job here
+        // if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+
+        // } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+
+        // } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+
+        // }
+        // }
+        // };
+
+        // //register the listener
+        // audioManager.requestAudioFocus(audioFocusListener,
+        // AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        /**** */
+
+        // int focusRequest = AudioManager.requestAudioFocus(mAudioFocusRequest);
+
+        // AudioManager am = (AudioManager)
+        // getBaseContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
+        // am.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+
+        // am.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+
+        // AudioAttributes auda = new
+        // AudioAttributes.Builder().setLegacyStreamType(streamType).build();
+        // tts.setAudioAttributes(auda);
+
+        // switch (focusRequest) {
+        // case AudioManager.AUDIOFOCUS_REQUEST_FAILED:
+        // // don’t start playback
+        // tts.speak(textFall, TextToSpeech.QUEUE_FLUSH, ttsParams);
+        // case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
+        // // actually start playback
+        // tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
+        // }
 
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
     }
