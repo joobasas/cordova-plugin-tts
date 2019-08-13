@@ -10,7 +10,7 @@
   <author>VILIC VANE</author>
   <license>MIT</license>
   <keywords>cordova,tts,text-to-speech</keywords>
-  <repo>https://github.com/vilic/cordova-plugin-tts.git</repo>
+  <repo>https://github.com/joobasas/cordova-plugin-tts.git</repo>
   <issue>https://github.com/vilic/cordova-plugin-tts/issues</issue>
 
   <js-module src="www/tts.js" name="tts">
