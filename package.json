@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vilic/cordova-plugin-tts.git"
+    "url": "git+https://github.com/joobasas/cordova-plugin-tts.git"
   },
   "keywords": [
     "cordova",
@@ -28,5 +28,5 @@
   "bugs": {
     "url": "https://github.com/vilic/cordova-plugin-tts/issues"
   },
-  "homepage": "https://github.com/vilic/cordova-plugin-tts#readme"
+  "homepage": "https://github.com/joobasas/cordova-plugin-tts#readme"
 }
