@@ -61,11 +61,11 @@
     
     [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     
-    NSDictionary* options = [command.arguments objectAtIndex:0];
+    //NSDictionary* options = [command.arguments objectAtIndex:0];
     
-    NSString* text = [options objectForKey:@"text"];
-    NSString* locale = [options objectForKey:@"locale"];
-    double rate = [[options objectForKey:@"rate"] doubleValue];
+    //NSString* text = [options objectForKey:@"text"];
+    //NSString* locale = [options objectForKey:@"locale"];
+    //double rate = [[options objectForKey:@"rate"] doubleValue];
     double pitch = [[options objectForKey:@"pitch"] doubleValue];
     
     if (!locale || (id)locale == [NSNull null]) {
