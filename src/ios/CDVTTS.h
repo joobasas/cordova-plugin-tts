@@ -15,9 +15,12 @@
     AVSpeechSynthesizer* synthesizer;
     NSString* lastCallbackId;
     NSString* callbackId;
+    NSString* stopCallbackId;
+    NSString* speakCallbackId;
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command;
+- (void)stopSpeak;
 - (void)stop:(CDVInvokedUrlCommand*)command;
 - (void)checkLanguage:(CDVInvokedUrlCommand*)command;
 @end
