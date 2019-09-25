@@ -9,7 +9,7 @@ import org.apache.cordova.CordovaInterface;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import android.util.Log;
 import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
@@ -48,6 +48,10 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     public static final String ERR_NOT_INITIALIZED = "ERR_NOT_INITIALIZED";
     public static final String ERR_ERROR_INITIALIZING = "ERR_ERROR_INITIALIZING";
     public static final String ERR_UNKNOWN = "ERR_UNKNOWN";
+    public CallbackContext stopCallbackContext = null;
+    public String startCallbackId = null;
+    public String lastCallBackId = null;
+    public String callbackId = null;
 
     boolean ttsInitialized = false;
     TextToSpeech tts = null;
@@ -56,15 +60,17 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     @Override
     public void initialize(CordovaInterface cordova, final CordovaWebView webView) {
         context = cordova.getActivity().getApplicationContext();
+        TTS that = this;
         tts = new TextToSpeech(cordova.getActivity().getApplicationContext(), this, "com.google.android.tts");
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String s) {
-                // do nothing
+                // Log.d("JOOBA", "START: CALLBACK_ID:"+callbackId);
             }
 
             @Override
             public void onDone(String callbackId) {
+                // Log.d("JOOBA", "DONE: CALLBACK_ID:"+callbackId);
                 if (!callbackId.equals("")) {
                     CallbackContext context = new CallbackContext(callbackId, webView);
                     context.success();
@@ -72,7 +78,30 @@ public class TTS extends CordovaPlugin implements OnInitListener {
             }
 
             @Override
+            public void onStop(String callbackId, boolean interrupted) {
+                // Log.d("JOOBA", "STOP: CALLBACK_ID:"+callbackId+" | "+ interrupted);
+                if (!callbackId.equals("")) {
+                    CallbackContext context = new CallbackContext(callbackId, webView);
+                    context.error(ERR_UNKNOWN);
+                }
+
+                if(that.stopCallbackContext != null && !that.stopCallbackContext.isFinished()) {
+                    // Log.d("JOOBA", "SENT STOP SUCCESS: CALLBACK_ID:"+that.stopCallbackContext.getCallbackId());
+                    that.stopCallbackContext.success();
+                    that.stopCallbackContext = null;
+                }
+
+                if (interrupted) {
+                    CallbackContext context = new CallbackContext(callbackId, webView);
+                    context.error(ERR_UNKNOWN);
+                    // Log.d("JOOBA", "SENT SPEAK STOP ERROR: CALLBACK_ID:"+callbackId);
+                }
+
+            }
+
+            @Override
             public void onError(String callbackId) {
+                // Log.d("JOOBA", "ERROR: CALLBACK_ID:"+callbackId);
                 if (!callbackId.equals("")) {
                     CallbackContext context = new CallbackContext(callbackId, webView);
                     context.error(ERR_UNKNOWN);
@@ -113,7 +142,10 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     }
 
     private void stop(JSONArray args, CallbackContext callbackContext) throws JSONException, NullPointerException {
+        // Log.d("JOOBA", "STOP ACTION: CALLBACK_ID:"+callbackContext.getCallbackId());
         tts.stop();
+        this.stopCallbackContext = callbackContext;
+        callbackContext.success();
     }
 
     private void callInstallTtsActivity(JSONArray args, CallbackContext callbackContext)
@@ -150,6 +182,8 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     }
 
     private void speak(JSONArray args, CallbackContext callbackContext) throws JSONException, NullPointerException {
+        // Log.d("JOOBA", "SPEAK ACTION: CALLBACK_ID:"+callbackContext.getCallbackId());
+
         JSONObject params = args.getJSONObject(0);
 
         if (params == null) {
@@ -197,80 +231,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
 
         String[] localeArgs = locale.split("-");
         tts.setLanguage(new Locale(localeArgs[0], localeArgs[1]));
-
-        // if (Build.VERSION.SDK_INT >= 27) {
-        //     tts.setSpeechRate((float) rate * 0.7f);
-        // } else {
-             tts.setSpeechRate((float) rate);
-        // }
-
-        // AudioManager AudioManager = (AudioManager)
-        // this.cordova.getActivity().getApplicationContext()
-        // .getSystemService(Context.AUDIO_SERVICE);
-
-        // AudioAttributes mAudioAttributes =
-        // new AudioAttributes.Builder()
-        // .setUsage(AudioAttributes.USAGE_MEDIA)
-        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-        // .build();
-
-        // AudioAttributes AudioFocusRequest = new
-        // AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
-
-        // AudioAttributes mAudioAttributes = new
-        // AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-        // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
-
-        // AudioFocusRequest mAudioFocusRequest = new AudioFocusRequest.Builder(
-        // AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(mAudioAttributes)
-        // .setAcceptsDelayedFocusGain(true)
-        // // .setOnAudioFocusChangeListener(...) // Need to implement listener
-        // .build();
-
-        /**** */
-        // create the listener
-        // audioFocusListener=new AudioManager.OnAudioFocusChangeListener() {
-        // @Override
-        // public void onAudioFocusChange(int focusChange) {
-
-        // // do your job here
-        // if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-
-        // } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-
-        // } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-
-        // }
-        // }
-        // };
-
-        // //register the listener
-        // audioManager.requestAudioFocus(audioFocusListener,
-        // AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        /**** */
-
-        // int focusRequest = AudioManager.requestAudioFocus(mAudioFocusRequest);
-
-        // AudioManager am = (AudioManager)
-        // getBaseContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
-        // am.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-
-        // am.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-
-        // AudioAttributes auda = new
-        // AudioAttributes.Builder().setLegacyStreamType(streamType).build();
-        // tts.setAudioAttributes(auda);
-
-        // switch (focusRequest) {
-        // case AudioManager.AUDIOFOCUS_REQUEST_FAILED:
-        // // don’t start playback
-        // tts.speak(textFall, TextToSpeech.QUEUE_FLUSH, ttsParams);
-        // case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
-        // // actually start playback
-        // tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
-        // }
-
+        tts.setSpeechRate((float) rate);
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
     }
 }
