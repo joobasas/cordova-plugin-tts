@@ -1,10 +1,10 @@
 /*
     Cordova Text-to-Speech Plugin
     https://github.com/vilic/cordova-plugin-tts
- 
+
     by VILIC VANE
     https://github.com/vilic
- 
+
     MIT License
 */
 
@@ -17,70 +17,52 @@
 - (void)pluginInitialize {
     synthesizer = [AVSpeechSynthesizer new];
     synthesizer.delegate = self;
-    NSLog(@"pluginInitialize // I am on pluginInitialize");
 }
 
-
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance {
-
-    NSLog(@"didFinishSpeechUtterance // i am on finish");
-    NSLog(@"didFinishSpeechUtterance // lastCallbackId : %@",lastCallbackId);
-    NSLog(@"didFinishSpeechUtterance // callbackId : %@",callbackId);
-    //NSLog(lastCallbackId);
-    //NSLog(callbackId);
-    // je pense que c'est ici qu'on initialisze la reposne
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
     if (lastCallbackId) {
-        // ici on envoi l'event pour le js  afain d'appeler kle resolve
         [self.commandDelegate sendPluginResult:result callbackId:lastCallbackId];
         lastCallbackId = nil;
     } else {
-        // envoi aussi
         [self.commandDelegate sendPluginResult:result callbackId:callbackId];
         callbackId = nil;
     }
-    
-    
+
     [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient 
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
       withOptions: 0 error: nil];
     [[AVAudioSession sharedInstance] setActive:YES withOptions: 0 error:nil];
-    
-    //synthesizer = [AVSpeechSynthesizer new];
-    //synthesizer.delegate = self;
-    NSLog(@"Aghiles I am on pluginInitialize");
 }
 
 - (void) stopSpeak {
-    NSLog(@"stopSpeak // i am on stopSpeak");
-    
+    // NSLog(@"stopSpeak // i am on stopSpeak");
     if(stopCallbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:result callbackId:stopCallbackId];
         stopCallbackId = nil;
     }
-    
+
     if(lastCallbackId){
         CDVPluginResult* reject = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
         [self.commandDelegate sendPluginResult:reject callbackId:lastCallbackId];
         lastCallbackId = nil;
     }
-    
 }
 
 
 - (void)speak:(CDVInvokedUrlCommand*)command {
-    
-    NSLog(@"speak // i am on speak");
+    // NSLog(@"speak // i am on speak");
     speakCallbackId = command.callbackId;
-    //NSLog(command.lastCallbackId);
+    // //NSLog(command.lastCallbackId);
     NSDictionary* options = [command.arguments objectAtIndex:0];
-    
+
     NSString* text = [options objectForKey:@"text"];
     NSString* locale = [options objectForKey:@"locale"];
     double rate = [[options objectForKey:@"rate"] doubleValue];
     NSString* category = [options objectForKey:@"category"];
-    
+
     [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
     if ([category isEqualToString:@"ambient"]) {
         [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
@@ -93,31 +75,28 @@
     if (callbackId) {
         lastCallbackId = callbackId;
     }
-    
+
     if(synthesizer.isSpeaking){
         [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
         [self stopSpeak];
     }
-    
-    NSLog(@"speak // i am on STOP");
 
-    
     callbackId = command.callbackId;
-    
+
     double pitch = [[options objectForKey:@"pitch"] doubleValue];
-    
+
     if (!locale || (id)locale == [NSNull null]) {
         locale = @"en-US";
     }
-    
+
     if (!rate) {
         rate = 1.0;
     }
-    
+
     if (!pitch) {
         pitch = 1.2;
     }
-    
+
     AVSpeechUtterance* utterance = [[AVSpeechUtterance new] initWithString:text];
     utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
     // Rate expression adjusted manually for a closer match to other platform.
@@ -129,32 +108,24 @@
     }
     utterance.pitchMultiplier = pitch;
     [synthesizer speakUtterance:utterance];
-
 }
 
 - (void)stop:(CDVInvokedUrlCommand*)command {
-      NSLog(@"stop // i am on stop");
+      // NSLog(@"stop // i am on stop");
       stopCallbackId = command.callbackId;
 
-
-    if(!synthesizer.isSpeaking){
-        NSLog(@"stop // NOT speaking");
-        CDVPluginResult* reject = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self.commandDelegate sendPluginResult:reject callbackId:stopCallbackId];
-        speakCallbackId = nil;
-    }else{
-        NSLog(@"stop // is speaking");
+    if(synthesizer.isSpeaking){
+        // NSLog(@"stop // is speaking");
         [synthesizer pauseSpeakingAtBoundary:AVSpeechBoundaryImmediate];
         [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     }
-    
+
     [self stopSpeak];
-    
+
     [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
                                      withOptions: 0 error: nil];
     [[AVAudioSession sharedInstance] setActive:YES withOptions:0 error:nil];
-
 }
 
 - (void)checkLanguage:(CDVInvokedUrlCommand *)command {
@@ -171,4 +142,3 @@
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:languages];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
-@end
