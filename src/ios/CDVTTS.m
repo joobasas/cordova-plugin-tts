@@ -142,3 +142,4 @@
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:languages];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
+@end
