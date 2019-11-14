@@ -52,7 +52,7 @@
         <param name="onload" value="true" />
       </feature>
     </config-file>
-
+    <resource-file src="jooba-beep.wav" />
     <source-file src="src/android/TTS.java" target-dir="src/com/wordsbaking/cordova/tts" />
   </platform>
 </plugin>
