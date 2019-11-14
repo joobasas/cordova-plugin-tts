@@ -24,7 +24,7 @@
         <param name="ios-package" value="CDVTTS"/>
       </feature>
     </config-file>
-
+    <resource-file src="jooba-beep.wav" />
     <header-file src="src/ios/CDVTTS.h" />
     <source-file src="src/ios/CDVTTS.m" />
   </platform>
@@ -52,7 +52,6 @@
         <param name="onload" value="true" />
       </feature>
     </config-file>
-    <resource-file src="jooba-beep.wav" />
     <source-file src="src/android/TTS.java" target-dir="src/com/wordsbaking/cordova/tts" />
   </platform>
 </plugin>
