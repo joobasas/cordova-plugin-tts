@@ -17,6 +17,14 @@
     NSString* callbackId;
     NSString* stopCallbackId;
     NSString* speakCallbackId;
+    AVAudioSession* audioSession;
+    AVAudioSessionCategory audioSessionCategory;
+    AVAudioSessionCategoryOptions audioSessionCategoryOptions;
+    AVAudioPlayer* audioPlayer;
+    NSTimer *timer;
+    BOOL enabled;
+    BOOL speaking;
+    BOOL audioReleased;
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command;
